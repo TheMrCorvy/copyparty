@@ -1,0 +1,124 @@
+# =============================================================================
+# k8s/persistent-volumes.yaml
+# =============================================================================
+# PersistentVolumes (PV) that bind directly to the host node's filesystem paths
+# using the "local" storage class. This is the Kubernetes equivalent of
+# Docker's bind-mount volumes.
+#
+# NOTE: These PVs are node-affinity bound. The Deployment's pod will always
+# be scheduled on the node where the drives are physically attached.
+# Change "kubernetes.io/hostname: your-node-name" to your actual node name.
+#
+# To find your node name: kubectl get nodes
+# =============================================================================
+
+# ── Persistent Volume: Main Internal Drive ────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: copyparty-main-pv
+  labels:
+    app: copyparty
+    drive: main
+spec:
+  capacity:
+    storage: 500Gi          # Adjust to your actual drive size
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/main         # Host path on the Ubuntu server (adjust for macOS: /Volumes/...)
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - your-node-name   # ← Replace with: kubectl get nodes -o jsonpath='{.items[0].metadata.name}'
+
+---
+# ── Persistent Volume: External USB Drive 1 ───────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: copyparty-ext1-pv
+  labels:
+    app: copyparty
+    drive: external1
+spec:
+  capacity:
+    storage: 2Ti            # Adjust to your actual drive size
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/external1   # Host path — adjust per OS
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - your-node-name
+
+---
+# ── Persistent Volume: External USB Drive 2 ───────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: copyparty-ext2-pv
+  labels:
+    app: copyparty
+    drive: external2
+spec:
+  capacity:
+    storage: 2Ti
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /mnt/external2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - your-node-name
+
+---
+# ── Persistent Volume: Config & hist ──────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: copyparty-config-pv
+  labels:
+    app: copyparty
+    drive: config
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /opt/copyparty/config
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - your-node-name

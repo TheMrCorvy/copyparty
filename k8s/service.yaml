@@ -1,0 +1,24 @@
+# =============================================================================
+# k8s/service.yaml
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: copyparty
+  namespace: copyparty
+  labels:
+    app: copyparty
+spec:
+  # NodePort exposes the service on every node's IP at a fixed port,
+  # making it reachable from any device on the local network without
+  # needing an Ingress controller or load balancer.
+  type: NodePort
+  selector:
+    app: copyparty
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3923          # ClusterIP port (internal K8s traffic)
+      targetPort: 3923    # Container port
+      nodePort: 30923     # Port accessible on the host node's IP (30000-32767)
+                          # Access via: http://<server-ip>:30923

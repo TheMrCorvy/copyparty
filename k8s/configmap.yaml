@@ -1,0 +1,35 @@
+# =============================================================================
+# k8s/configmap.yaml
+# =============================================================================
+# The copyparty.conf is stored as a Kubernetes ConfigMap so it can be mounted
+# into the pod without baking it into the container image.
+# Update this ConfigMap and rollout-restart the Deployment to apply changes.
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copyparty-config
+  namespace: copyparty
+  labels:
+    app: copyparty
+data:
+  copyparty.conf: |
+    [global]
+    p: 3923
+    i: 0.0.0.0
+    hist: /cfg/hist
+    no-motd: true
+    iobuf: 262144
+    log-lv: 1
+
+    [/main]
+    /drives/main
+    accs: rwmd: *
+
+    [/external1]
+    /drives/external1
+    accs: rwmd: *
+
+    [/external2]
+    /drives/external2
+    accs: rwmd: *
