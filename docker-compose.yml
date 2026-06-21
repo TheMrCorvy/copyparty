@@ -26,15 +26,25 @@ services:
     # ── Configuration & data volumes ───────────────────────────────────────
     # All paths on the LEFT are HOST paths (defined in .env).
     # All paths on the RIGHT are fixed container paths referenced by copyparty.conf.
+    #
+    # HOW TO ADD A NEW DRIVE:
+    #   1. Uncomment one of the extra drive lines below.
+    #   2. Set the matching variable in .env  (e.g. EXTRA_DRIVE1_PATH=F:/)
+    #   3. Add a new [/volume] block in config/copyparty.conf.
+    #   4. Run:  docker compose up -d
     volumes:
       # Configuration directory (copyparty.conf lives here)
       - ${CONFIG_PATH:?CONFIG_PATH must be set in .env}:/cfg
 
-      # Your three drives — mounted as read-write
-      # The container paths must match the [volume] paths in copyparty.conf
+      # ── Active drives (container path must match copyparty.conf) ─────────
       - ${MAIN_DRIVE_PATH:?MAIN_DRIVE_PATH must be set in .env}:/drives/main
       - ${EXT_DRIVE1_PATH:?EXT_DRIVE1_PATH must be set in .env}:/drives/external1
       - ${EXT_DRIVE2_PATH:?EXT_DRIVE2_PATH must be set in .env}:/drives/external2
+
+      # ── Extra drives — uncomment and set the variable in .env to activate ─
+      # - ${EXTRA_DRIVE1_PATH}:/drives/extra1
+      # - ${EXTRA_DRIVE2_PATH}:/drives/extra2
+      # - ${EXTRA_DRIVE3_PATH}:/drives/extra3
 
     # ── Temp filesystem in RAM (avoids writing Docker temp to disk) ────────
     tmpfs:
