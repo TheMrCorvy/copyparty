@@ -117,9 +117,10 @@ Configured conservatively for a Mac Mini running multiple apps. Tune in `.env`:
 
 ---
 
-### Platform 1: Windows 11 (Local Testing)
+### Platform 1: Windows 11
 
 #### Prerequisites
+
 - [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
 
 #### Step 1 — Allow Docker to access your drives
@@ -129,6 +130,7 @@ Docker Desktop on Windows has an explicit file-sharing whitelist. Without this, 
 > **Docker Desktop → Settings → Resources → File Sharing**
 
 Add the root of every drive you want to share:
+
 - `C:\`
 - `D:\`
 - `E:\`
@@ -164,7 +166,7 @@ Look for the **WiFi adapter → IPv4 Address** (e.g. `192.168.1.xx`). Other devi
 
 ---
 
-### Platform 2: macOS Sequoia — Intel Mac Mini (Homelab)
+### Platform 2: macOS
 
 > **Intel-specific note:** The `ghcr.io/9001/copyparty-ac:latest` image is multi-arch. On Intel it pulls `linux/amd64` automatically — no Rosetta or manual flag needed.
 
@@ -172,17 +174,18 @@ Look for the **WiFi adapter → IPv4 Address** (e.g. `192.168.1.xx`). Other devi
 
 Your Mac Mini is an Intel i5 **already running many apps**. Docker Desktop for Mac runs a full Linux VM in the background and consumes **~500 MB RAM** at idle. This is significant overhead on a shared homelab server.
 
-| | Docker Desktop | OrbStack (recommended) |
-|---|---|---|
-| Idle RAM | ~500 MB | ~50–100 MB |
-| Startup time | ~30 seconds | ~2 seconds |
-| `docker compose` compatibility | ✅ Full | ✅ Full — identical commands |
-| Cost | Free (personal) | Free (personal) |
-| Install | [docker.com](https://www.docker.com/products/docker-desktop/) | `brew install orbstack` |
+|                                | Docker Desktop                                                | OrbStack (recommended)       |
+| ------------------------------ | ------------------------------------------------------------- | ---------------------------- |
+| Idle RAM                       | ~500 MB                                                       | ~50–100 MB                   |
+| Startup time                   | ~30 seconds                                                   | ~2 seconds                   |
+| `docker compose` compatibility | ✅ Full                                                       | ✅ Full — identical commands |
+| Cost                           | Free (personal)                                               | Free (personal)              |
+| Install                        | [docker.com](https://www.docker.com/products/docker-desktop/) | `brew install orbstack`      |
 
 Both work with this project without any changes to `docker-compose.yml`. OrbStack is strongly recommended for the Mac Mini.
 
 **Install OrbStack:**
+
 ```bash
 brew install orbstack
 ```
@@ -206,16 +209,14 @@ Your external drives mount under `/Volumes/` automatically when plugged in, so *
 macOS Sequoia's privacy system can block Docker from reading external volumes even when they appear mounted. This causes drives to show up in the browser but appear empty inside.
 
 **For Docker Desktop:**
-> **System Settings → Privacy & Security → Full Disk Access → toggle on Docker Desktop**
 
-**For OrbStack:**
-> **System Settings → Privacy & Security → Full Disk Access → toggle on OrbStack**
+> **System Settings → Privacy & Security → Full Disk Access → toggle on Docker Desktop or Orbstack**
 
 This is a **one-time step** that survives reboots and updates.
 
 #### Step 3 — Enable VirtioFS for faster file I/O
 
-*(Docker Desktop only — OrbStack uses a fast native layer by default and does not need this)*
+_(Docker Desktop only — OrbStack uses a fast native layer by default and does not need this)_
 
 VirtioFS is a modern, significantly faster filesystem sharing protocol versus the legacy `osxfs`. On file-heavy workloads (large transfers, directory scans) the difference is very noticeable on Intel hardware.
 
@@ -230,6 +231,7 @@ ls /Volumes/
 ```
 
 Example output:
+
 ```
 Macintosh HD    ExternalDrive1    ExternalDrive2
 ```
@@ -268,7 +270,7 @@ Browse to `http://localhost:3923`.
 
 **Docker Desktop:** Go to Docker Desktop → Settings → General → enable **"Start Docker Desktop when you log in"**. The `restart: unless-stopped` policy handles restarting the copyparty container automatically.
 
-#### Finding the Mac Mini's IP for LAN access
+#### Finding the Mac's IP for LAN access
 
 ```bash
 ipconfig getifaddr en0    # WiFi
@@ -278,23 +280,24 @@ ipconfig getifaddr en1    # Ethernet (if connected via cable)
 Or: **System Settings → Network → your active interface → IP address**
 
 Other devices (your Windows 11 PC, phones, tablets) access copyparty at:
+
 ```
 http://<mac-mini-ip>:3923
 ```
 
 #### macOS Sequoia — Quick Troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| Drive shows in browser but is empty | Grant Full Disk Access (Step 2) |
-| `permission denied` in logs | Grant Full Disk Access (Step 2) |
-| File transfers are slow | Enable VirtioFS in Docker Desktop (Step 3) or switch to OrbStack |
-| Container doesn't start after reboot | Enable "Start at login" in Docker Desktop / OrbStack settings (Step 7) |
+| Symptom                                   | Fix                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------- |
+| Drive shows in browser but is empty       | Grant Full Disk Access (Step 2)                                           |
+| `permission denied` in logs               | Grant Full Disk Access (Step 2)                                           |
+| File transfers are slow                   | Enable VirtioFS in Docker Desktop (Step 3) or switch to OrbStack          |
+| Container doesn't start after reboot      | Enable "Start at login" in Docker Desktop / OrbStack settings (Step 7)    |
 | Drive name changed after reconnecting USB | Re-run `ls /Volumes/`, update `.env`, restart with `docker compose up -d` |
 
 ---
 
-### Platform 3: Ubuntu Server 24.04 (Future Migration)
+### Platform 3: Ubuntu Server 24.04
 
 #### Step 1 — Install Docker Engine
 
@@ -320,6 +323,7 @@ sudo mkdir -p /mnt/main /mnt/external1 /mnt/external2
 ```
 
 Edit `/etc/fstab` (find UUIDs with `lsblk -f`):
+
 ```
 UUID=xxxx-xxxx  /mnt/external1  exfat  defaults,nofail,uid=1000,gid=1000  0  2
 UUID=xxxx-xxxx  /mnt/external2  exfat  defaults,nofail,uid=1000,gid=1000  0  2
@@ -328,6 +332,7 @@ UUID=xxxx-xxxx  /mnt/external2  exfat  defaults,nofail,uid=1000,gid=1000  0  2
 > The `nofail` flag prevents the server from hanging on boot if a drive is not connected.
 
 Test the fstab entries without rebooting:
+
 ```bash
 sudo mount -a
 df -h   # verify drives appear
@@ -372,14 +377,14 @@ ip addr show | grep "inet "
 
 ## Network Access from Windows 11 (Mapped Drive)
 
-copyparty exposes WebDAV natively — your Windows 11 PC can mount the Mac Mini's drives as local drive letters in File Explorer with no extra software.
+copyparty exposes WebDAV natively — your Windows 11 PC can mount the Mac's drives as local drive letters in File Explorer with no extra software.
 
-| Method                    | URL format                            |
-| ------------------------- | ------------------------------------- |
-| Web browser               | `http://<server-ip>:3923`             |
-| WebDAV — main drive       | `http://<server-ip>:3923/main`        |
-| WebDAV — external drive 1 | `http://<server-ip>:3923/external1`   |
-| WebDAV — external drive 2 | `http://<server-ip>:3923/external2`   |
+| Method                    | URL format                          |
+| ------------------------- | ----------------------------------- |
+| Web browser               | `http://<server-ip>:3923`           |
+| WebDAV — main drive       | `http://<server-ip>:3923/main`      |
+| WebDAV — external drive 1 | `http://<server-ip>:3923/external1` |
+| WebDAV — external drive 2 | `http://<server-ip>:3923/external2` |
 
 ### Mapping as a Windows Network Drive
 
@@ -392,6 +397,7 @@ copyparty exposes WebDAV natively — your Windows 11 PC can mount the Mac Mini'
 Repeat for each drive using a different letter each time.
 
 > **If WebDAV mapping fails on Windows**, run this in PowerShell as Administrator then try again:
+>
 > ```powershell
 > Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\WebClient\Parameters' -Name BasicAuthLevel -Value 2
 > Restart-Service WebClient
@@ -406,6 +412,7 @@ The `k8s/` directory contains ready-to-use manifests for migrating from `docker 
 ### Before deploying
 
 1. **Replace `your-node-name`** in `persistent-volumes.yaml` and `deployment.yaml`:
+
    ```bash
    kubectl get nodes
    ```
@@ -413,6 +420,7 @@ The `k8s/` directory contains ready-to-use manifests for migrating from `docker 
 2. **Update host paths** in `persistent-volumes.yaml` to match Ubuntu mount points (e.g., `/mnt/external1`).
 
 3. **Deploy in order:**
+
    ```bash
    kubectl apply -f k8s/namespace.yaml
    kubectl apply -f k8s/configmap.yaml
