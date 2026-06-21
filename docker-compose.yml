@@ -1,0 +1,92 @@
+# =============================================================================
+# docker-compose.yml — copyparty homelab file server
+# =============================================================================
+# Usage:
+#   Windows (testing):  docker compose up -d
+#   macOS / Ubuntu:     docker compose up -d
+#
+# Access:  http://localhost:3923
+# =============================================================================
+
+services:
+  copyparty:
+    image: ghcr.io/9001/copyparty-ac:latest   # Alpine-based, lightest variant (~30-70 MB RAM)
+    container_name: copyparty
+    hostname: copyparty
+
+    # ── Restart policy ─────────────────────────────────────────────────────
+    restart: unless-stopped
+
+    # ── Ports ──────────────────────────────────────────────────────────────
+    # HOST_PORT:CONTAINER_PORT
+    # Change the left side if 3923 is taken on your host.
+    ports:
+      - "${COPYPARTY_PORT:-3923}:3923"
+
+    # ── Configuration & data volumes ───────────────────────────────────────
+    # All paths on the LEFT are HOST paths (defined in .env).
+    # All paths on the RIGHT are fixed container paths referenced by copyparty.conf.
+    volumes:
+      # Configuration directory (copyparty.conf lives here)
+      - ${CONFIG_PATH:?CONFIG_PATH must be set in .env}:/cfg
+
+      # Your three drives — mounted as read-write
+      # The container paths must match the [volume] paths in copyparty.conf
+      - ${MAIN_DRIVE_PATH:?MAIN_DRIVE_PATH must be set in .env}:/drives/main
+      - ${EXT_DRIVE1_PATH:?EXT_DRIVE1_PATH must be set in .env}:/drives/external1
+      - ${EXT_DRIVE2_PATH:?EXT_DRIVE2_PATH must be set in .env}:/drives/external2
+
+    # ── Temp filesystem in RAM (avoids writing Docker temp to disk) ────────
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+
+    # ── Environment variables passed to copyparty ──────────────────────────
+    environment:
+      # Tell copyparty which config file to load (relative to /cfg)
+      CPP_CFG: /cfg/copyparty.conf
+      # Optional: set timezone for correct timestamps in logs
+      TZ: ${TZ:-America/New_York}
+
+    # ── Resource limits (critical for shared homelab server) ───────────────
+    # These two lines work in ALL Compose versions without Swarm mode:
+    mem_limit: ${MEM_LIMIT:-256m}
+    cpus: ${CPU_LIMIT:-0.50}
+    mem_reservation: 64m
+    # deploy.resources mirrors the above for future Kubernetes/Swarm migration:
+    deploy:
+      resources:
+        limits:
+          cpus: "${CPU_LIMIT:-0.50}"
+          memory: "${MEM_LIMIT:-256M}"
+        reservations:
+          cpus: "0.05"
+          memory: 64M
+
+    # ── Healthcheck ────────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3923/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    # ── Logging ────────────────────────────────────────────────────────────
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # ── Security hardening ─────────────────────────────────────────────────
+    # Drop all Linux capabilities; copyparty doesn't need any special privs.
+    cap_drop:
+      - ALL
+    # Prevent privilege escalation inside the container
+    security_opt:
+      - no-new-privileges:true
+
+    # ── Labels (for future Kubernetes/Helm migration) ──────────────────────
+    labels:
+      app: copyparty
+      component: fileserver
+      managed-by: docker-compose

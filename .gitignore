@@ -1,0 +1,19 @@
+# =============================================================================
+# .gitignore
+# =============================================================================
+
+# Never commit the active .env (contains real local paths)
+.env
+
+# copyparty internal files (created at runtime)
+config/hist/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
