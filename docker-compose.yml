@@ -10,7 +10,7 @@
 
 services:
   copyparty:
-    image: ghcr.io/9001/copyparty-ac:latest   # Alpine-based, lightest variant (~30-70 MB RAM)
+    image: ghcr.io/9001/copyparty-ac:latest # Alpine-based, lightest variant (~30-70 MB RAM)
     container_name: copyparty
     hostname: copyparty
 
@@ -36,16 +36,19 @@ services:
       # Configuration directory (copyparty.conf lives here)
       - ${CONFIG_PATH:?CONFIG_PATH must be set in .env}:/cfg
 
-      # ── Active drives (container path must match copyparty.conf) ─────────
-      - ${MAIN_DRIVE_PATH:?MAIN_DRIVE_PATH must be set in .env}:/drives/main
-      - ${EXT_DRIVE1_PATH:?EXT_DRIVE1_PATH must be set in .env}:/drives/external1
-      - ${EXT_DRIVE2_PATH:?EXT_DRIVE2_PATH must be set in .env}:/drives/external2
-      - ${EXT_DRIVE3_PATH:?EXT_DRIVE3_PATH must be set in .env}:/drives/external3
-
       # ── Extra drives — uncomment and set the variable in .env to activate ─
       # - ${EXTRA_DRIVE1_PATH}:/drives/extra1
       # - ${EXTRA_DRIVE2_PATH}:/drives/extra2
       # - ${EXTRA_DRIVE3_PATH}:/drives/extra3
+      # Log file path (pre-created on the host to avoid Docker directory creation)
+      - ${LOG_FILE_PATH:-./copyparty.log}:/var/log/copyparty.log
+
+      # Your three drives — mounted as read-write
+      # The container paths must match the [volume] paths in copyparty.conf
+      - ${MAIN_DRIVE_PATH:?MAIN_DRIVE_PATH must be set in .env}:/drives/${MAIN_DRIVE_NAME:?MAIN_DRIVE_NAME must be set in .env}
+      - ${EXT_DRIVE1_PATH:?EXT_DRIVE1_PATH must be set in .env}:/drives/${EXT_DRIVE1_NAME:?EXT_DRIVE1_NAME must be set in .env}
+      - ${EXT_DRIVE2_PATH:?EXT_DRIVE2_PATH must be set in .env}:/drives/${EXT_DRIVE2_NAME:?EXT_DRIVE2_NAME must be set in .env}
+      - ${EXT_DRIVE3_PATH:?EXT_DRIVE3_PATH must be set in .env}:/drives/${EXT_DRIVE3_NAME:?EXT_DRIVE3_NAME must be set in .env}
 
     # ── Temp filesystem in RAM (avoids writing Docker temp to disk) ────────
     tmpfs:
