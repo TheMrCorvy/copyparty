@@ -50,6 +50,11 @@ spec:
               mountPath: /cfg/copyparty.conf
               subPath: copyparty.conf
               readOnly: true
+            # Secrets file (read-only — config is managed via K8s Secret)
+            - name: secrets-file
+              mountPath: /cfg/secrets.conf
+              subPath: secrets.conf
+              readOnly: true
             # Hist/index dir from PVC (read-write — copyparty writes its DB here)
             - name: config-storage
               mountPath: /cfg/hist
@@ -61,6 +66,8 @@ spec:
               mountPath: /drives/external1
             - name: external2-drive
               mountPath: /drives/external2
+            - name: external3-drive
+              mountPath: /drives/external3
 
           # ── Resource limits (keep the Mac Mini healthy) ──────────────────
           resources:
@@ -104,6 +111,9 @@ spec:
         - name: config-storage
           persistentVolumeClaim:
             claimName: copyparty-config-pvc
+        - name: secrets-file
+          secret:
+            secretName: copyparty-secrets
         - name: main-drive
           persistentVolumeClaim:
             claimName: copyparty-main-pvc
@@ -113,3 +123,6 @@ spec:
         - name: external2-drive
           persistentVolumeClaim:
             claimName: copyparty-ext2-pvc
+        - name: external3-drive
+          persistentVolumeClaim:
+            claimName: copyparty-ext3-pvc

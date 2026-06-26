@@ -75,3 +75,23 @@ spec:
   selector:
     matchLabels:
       drive: config
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: copyparty-ext3-pvc
+  namespace: copyparty
+  labels:
+    app: copyparty
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 2Ti
+  selector:
+    matchLabels:
+      drive: external3
+

@@ -18,3 +18,4 @@ desktop.ini
 .idea/
 *.swp
 config/copyparty
+config/secrets.conf

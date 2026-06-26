@@ -40,6 +40,7 @@ services:
       - ${MAIN_DRIVE_PATH:?MAIN_DRIVE_PATH must be set in .env}:/drives/main
       - ${EXT_DRIVE1_PATH:?EXT_DRIVE1_PATH must be set in .env}:/drives/external1
       - ${EXT_DRIVE2_PATH:?EXT_DRIVE2_PATH must be set in .env}:/drives/external2
+      - ${EXT_DRIVE3_PATH:?EXT_DRIVE3_PATH must be set in .env}:/drives/external3
 
       # ── Extra drives — uncomment and set the variable in .env to activate ─
       # - ${EXTRA_DRIVE1_PATH}:/drives/extra1

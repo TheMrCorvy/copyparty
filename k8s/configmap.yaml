@@ -22,6 +22,9 @@ data:
     iobuf: 262144
     log-lv: 1
 
+    # Load credentials from an untracked secrets.conf file mounted from a K8s Secret
+    % secrets.conf
+
     [/main]
     /drives/main
     accs: rwmd: *
@@ -33,3 +36,8 @@ data:
     [/external2]
     /drives/external2
     accs: rwmd: *
+
+    [/external3]
+    /drives/external3
+    name: Privado
+    accs: rwmd: admin
